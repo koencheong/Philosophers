@@ -16,37 +16,72 @@
 // argv[2] time_to_die 
 // argv[3] time_to_eat
 // argv[4] time_to_sleep
+// argv[5] (optional) number_of_meals
+
+time_t	get_time(void)
+{
+	struct timeval	time;
+
+	gettimeofday(&time, NULL);
+	return((time.tv_sec * 1000) + (time.tv_usec / 1000));	
+}
 
 void	*philofunc(void* arg)
 {
-	(void)arg;
-	printf("Hi from thread!\n");
+	t_philo	*philo;
+	time_t	time;
+
+	philo = (t_philo *)arg;
+	time = get_time();
+	printf("%ld %d is thinking\n", time, philo->idnum);
+	
+	if (pthread_mutex_lock(&philo->right_fork) == 0)
+	{
+		if (pthread_mutex_lock(&philo->left_fork) == 0)
+			printf("%d is eating\n", philo->idnum);
+	}
+	else
+		printf("%d is sleeping\n", philo->idnum);
+	
 	return (0);
 }
 
 int	main(int argc, char **argv)
 {
-	int		n_philo;
-	t_philo	*philo_vars;
+	int			i;
+	t_info		*info;
 
-	philo_vars = NULL;
-	if (argc == 5)
+	i = 0;
+	if (argc == 5 || argc == 6)
 	{
-		n_philo = atoi(argv[1]);
-		// philo_vars = (t_philo *)malloc(n_philo * sizeof(t_philo));
-		philo_vars->t2think = strdup(atoi(argv[2]));
-		philo_vars->t2eat = atoi(argv[3]);
-		philo_vars->t2zzz = atoi(argv[4]);
-		
-		int			i;
+		info = (t_info *)malloc(sizeof(t_info));
+		info->n_philo = atoi(argv[1]);
+		// info->idnum = 0;
+		info->t2think = atoi(argv[2]);
+		info->t2eat = atoi(argv[3]);
+		info->t2zzz = atoi(argv[4]);
 
-		i = 0;
-		while (i < n_philo)
+		while (i < info->n_philo)
 		{
-			pthread_create(&philo_vars->philo_ids[i], NULL, &philofunc, NULL);
+			// printf("debug\n");
+			info->philo_tid = (pthread_t *)malloc(info->n_philo * sizeof(pthread_t));
+			info->philo = (t_philo *)malloc(info->n_philo * sizeof(t_philo));
+			info->philo[i].info = info;
+			info->philo[i].idnum = i + 1;
+			pthread_mutex_init(&info->philo[i].mutex, NULL);
+			pthread_mutex_init(&info->philo[i].right_fork, NULL);
+			pthread_mutex_init(&info->philo[i].left_fork, NULL);
+			pthread_create(&info->philo_tid[i], NULL, &philofunc, &info->philo[i]);
+			usleep(1);
 			i++;
 		}
-		pthread_join(philo_vars->philo_ids[i], NULL);
+
+		i = 0;
+		while (i < info->n_philo)
+    	{
+			pthread_join(info->philo_tid[i], NULL);
+			i++;
+		}
 	}
 	else
 		printf("Usage: ./philo [number_of_philosophers] [time_to_die] [time_to_eattime_to_sleep]\n");

@@ -28,13 +28,28 @@
 # include <sys/time.h>
 # include <pthread.h>
 
-typedef	struct s_philo
+struct	s_info;
+
+typedef struct	s_philo
 {
-	pthread_t	*philo_ids;
+	s_info			*info;
+	pthread_t		*philo_tid;
+	int				idnum;
+	pthread_mutex_t	mutex;
+	pthread_mutex_t	right_fork;
+	pthread_mutex_t	left_fork;
+
+}	t_philo;
+
+typedef struct	s_info
+{
+	int			n_philo;
 	int			t2eat;
 	int			t2zzz;
 	int			t2think;
-}	t_philo;
+	t_philo		*philo;
+	pthread_t	*philo_tid;
+}	t_info;
 
 
 #endif
