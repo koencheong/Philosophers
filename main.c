@@ -33,15 +33,15 @@ void	*philofunc(void* arg)
 
 	philo = (t_philo *)arg;
 	time = get_time();
-	printf("%ld %d is thinking\n", time, philo->idnum);
+	philo->right_fork = philo->info->forks[philo->idnum];
+	philo->left_fork = philo->info->forks[(philo->idnum + 1) % philo->info->n_philo];
+
+	printf("%d takes a fork\n", philo->idnum);
+	pthread_mutex_lock(&philo->right_fork);
+	printf("%d takes a fork\n", philo->idnum);
+	pthread_mutex_lock(&philo->left_fork);
 	
-	if (pthread_mutex_lock(&philo->right_fork) == 0)
-	{
-		if (pthread_mutex_lock(&philo->left_fork) == 0)
-			printf("%d is eating\n", philo->idnum);
-	}
-	else
-		printf("%d is sleeping\n", philo->idnum);
+	printf("%ld\n", get_time() - time);
 	
 	return (0);
 }
@@ -60,6 +60,7 @@ int	main(int argc, char **argv)
 		info->t2think = atoi(argv[2]);
 		info->t2eat = atoi(argv[3]);
 		info->t2zzz = atoi(argv[4]);
+		info->forks = (pthread_mutex_t *) malloc(info->n_philo * sizeof(pthread_mutex_t));
 
 		while (i < info->n_philo)
 		{
@@ -78,7 +79,7 @@ int	main(int argc, char **argv)
 
 		i = 0;
 		while (i < info->n_philo)
-    	{
+		{
 			pthread_join(info->philo_tid[i], NULL);
 			i++;
 		}

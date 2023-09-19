@@ -32,7 +32,7 @@ struct	s_info;
 
 typedef struct	s_philo
 {
-	s_info			*info;
+	struct s_info			*info;
 	pthread_t		*philo_tid;
 	int				idnum;
 	pthread_mutex_t	mutex;
@@ -49,6 +49,7 @@ typedef struct	s_info
 	int			t2think;
 	t_philo		*philo;
 	pthread_t	*philo_tid;
+	pthread_mutex_t	*forks;
 }	t_info;
 
 
